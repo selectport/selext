@@ -5,28 +5,37 @@ module SelextConnX
 # SelextConnX.sutdb variable (instead of a global constant since we'll be
 # dynamically connecting/disconnecting as necessary)
 
-def self.connect_sut_db
+# database_tag is used to look up the connection information in the SUTDatabase
+# table of current app;  password is then fetched from our encrypted credentials
+# in config/credentials.yml.enc
+
+def self.connect_sut_db(database_tag)
+
+  raise StandardError, "Missing database_tag on connect_sut_db call." if database_tag.blank?
 
   if @sutdb.nil?
     
-    remote_database = Selext.databases[:sut]
-    remote_database[:password] = 
-        AppUtils.fetch_credential(
-          'prod_database_passwords')[ENV.fetch('SUT_DATABASE_TAG').to_sym]
+    remote_database = SUTDatabase.where(database_tag: database_tag.to_s).first
+      unless remote_database
+        raise StandardError, "Invalid database_tag for SUT : #{database_tag}"
+      end
+
+    remote_password = 
+        AppUtils.fetch_credential('prod_database_passwords')[database_tag.to_sym]
 
     SelextConnX.sql_logger.info(
-       "CONNECTING TO SUT_DB  #{remote_database[:database]} on #{remote_database[:host]}")
+       "CONNECTING TO SUT_DB  #{remote_database.database_name} on #{remote_database_database_host}")
 
     begin
 
       SelextConnX.sql_logger.info "...connect to the database"
 
       SelextConnX.sutdb = Sequel.connect(adapter:             :postgres, 
-                                         database:            remote_database[:database],
-                                         user:                remote_database[:username],
-                                         password:            remote_database[:password],
-                                         host:                remote_database[:host],
-                                         port:                remote_database[:port],
+                                         database:            remote_database.database_name,
+                                         user:                remote_database.database_user,
+                                         password:            remote_password,
+                                         host:                remote_database.database_host,
+                                         port:                remote_database.database_port,
                                          max_connections:     1, 
                                          pool_timeout:        5,
                                          log_connection_info: true,
