@@ -97,11 +97,6 @@ def initialize!(run_mode: nil)
   require_relative './selext/decorators/selext_ckdigit.rb'
   
 # ------------------------------------------------------------------------------
-# # load our fintypes library
-
-#   require_relative './fintypes/lib/fintypes.rb'
-
-# ------------------------------------------------------------------------------
 # set @run_mode
 #
 #   run_mode is either :
