@@ -145,7 +145,7 @@ module Selext
   # for reaching outside the project to the common inter-service drop zone
 
   def Selext.drop_zone(*args)
-    File.expand_path(File.join(ENV['SELEXT_DROP_ZONE'], '*args'))
+    File.expand_path(File.join(ENV['SELEXT_DROP_ZONE'], *args))
   end
 
 
