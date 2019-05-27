@@ -97,16 +97,8 @@ module Selext
     File.expand_path(File.join(Selext.home, 'app', 'routes', *args))
   end
 
-  def Selext.shared_tasks(*args)
-    File.expand_path(File.join(Selext.home, 'lib', 'selext', 'raketasks', *args))
-  end
-
   def Selext.specroot(*args)
     File.expand_path(File.join(Selext.home, 'spec', *args))
-  end
-
-  def Selext.tasks(*args)
-    File.expand_path(File.join(Selext.home, 'lib', 'selext', 'raketasks', *args))
   end
 
   def Selext.validators(*args)
@@ -145,6 +137,16 @@ module Selext
   def Selext.in_rails?
     @run_mode == :in_rails ? true : false
   end 
+
+  # for reaching into the gem's rake tasks
+
+  def Selext.gemroot(*args)
+    File.expand_path(File.join(Selext.gem_dir, *args))
+  end
+
+  def Selext.gemtasks(*args)
+    File.expand_path(File.join(Selext.gem_dir, 'lib', 'raketasks', *args))
+  end
 
 # ------------------------------------------------------------------------------
 end # Selext module
