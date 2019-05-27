@@ -9,10 +9,10 @@ def self.connect_sut_db
 
   if @sutdb.nil?
     
-    remote_database = Selext.databases[:streamline]
+    remote_database = Selext.databases[:sut]
     remote_database[:password] = 
         AppUtils.fetch_credential(
-          'prod_database_passwords')[ENV.fetch('STRL_DATABASE_TAG').to_sym]
+          'prod_database_passwords')[ENV.fetch('SUT_DATABASE_TAG').to_sym]
 
     SelextConnX.sql_logger.info(
        "CONNECTING TO SUT_DB  #{remote_database[:database]} on #{remote_database[:host]}")
@@ -77,32 +77,3 @@ end
 
 end # module
 
-
-
-
-
-# remote_database = Selext.databases[:streamline]
-# remote_database[:password] = 
-#    AppUtils.fetch_credential('prod_database_passwords')[ENV.fetch('STRL_DATABASE_TAG').to_sym]
-
-# #puts remote_database.inspect
-
-# begin
-
-#    connr = PG.connect  dbname:            remote_database[:database],
-#                        user:              remote_database[:username],
-#                        password:          remote_database[:password],
-#                        host:              remote_database[:host],
-#                        port:              remote_database[:port],
-#                        connect_timeout:   remote_database[:timeout]
-
-
-#    puts "connected remotely to host #{remote_database[:host]} db: #{remote_database[:database]} as user #{remote_database[:username]}"
-
-
-# rescue PG::Error => e
-
-#   puts e.message
-#   raise
-    
-# end
