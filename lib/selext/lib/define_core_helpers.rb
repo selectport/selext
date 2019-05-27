@@ -142,6 +142,13 @@ module Selext
     @run_mode == :in_rails ? true : false
   end 
 
+  # for reaching outside the project to the common inter-service drop zone
+
+  def Selext.drop_zone(*args)
+    File.expand_path(File.join(ENV['SELEXT_DROPZONE'], '*args')
+  end
+
+
   # for reaching into the gem's rake tasks
 
   def Selext.gemroot(*args)
