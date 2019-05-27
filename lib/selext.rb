@@ -50,6 +50,8 @@ extend self
 
   attr_accessor     :gem_dir                      # absolute path where this gem is installed
 
+  attr_accessor     :xtalk_root                   # root path for the xtalk library tree
+
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 
@@ -165,6 +167,12 @@ def initialize!(run_mode: nil)
   
   @gem_dir = File.dirname(File.expand_path(File.join(__FILE__,'./../')))
 
+# ------------------------------------------------------------------------------
+# set the xtalk library root (it has project-specific proto stubs and service
+# defs so must exist outside the gem)
+
+  @xtalk_root = File.join(ENV['SELEXT_COMMON_LIBRARY_DIRECTORY'], 'xtalk')
+  
 # ------------------------------------------------------------------------------
 # setup databases environment from ENV and config
 

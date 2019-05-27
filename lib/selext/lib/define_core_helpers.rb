@@ -85,6 +85,10 @@ module Selext
     File.expand_path(File.join(Selext.approot, 'probes', *args))
   end
 
+  def Selext.protos(*args)
+    File.expand_path(File.join(Selext.xtalk_root, 'xtalk', 'grpc', *args))
+  end
+
   def Selext.queries(*args)
     File.expand_path(File.join(Selext.approot, 'queries', *args))
   end
