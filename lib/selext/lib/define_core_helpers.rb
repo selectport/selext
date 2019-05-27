@@ -145,7 +145,7 @@ module Selext
   end
 
   def Selext.gemtasks(*args)
-    File.expand_path(File.join(Selext.gem_dir, 'lib', 'raketasks', *args))
+    File.expand_path(File.join(Selext.gem_dir, 'lib', 'selext', 'raketasks', *args))
   end
 
 # ------------------------------------------------------------------------------

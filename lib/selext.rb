@@ -160,12 +160,11 @@ def initialize!(run_mode: nil)
   @project_directory = ENV['SELEXT_PROJECT_DIRECTORY'].to_s
   @home = @project_directory
 
-
 # ------------------------------------------------------------------------------
 # affix this gem's install directory 
   
   @gem_dir = File.dirname(File.expand_path(File.join(__FILE__,'./../')))
-  
+
 # ------------------------------------------------------------------------------
 # setup databases environment from ENV and config
 
