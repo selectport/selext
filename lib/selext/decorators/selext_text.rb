@@ -1,5 +1,24 @@
+# general non-classed methods
+
+def blank_or_strip(x)
+
+  if x.is_a?(String)
+
+    if x.nil?
+      return ''
+    else
+      return x.chomp.strip
+    end
+
+  else
+    return x
+  end
+
+end
+
+
 class SelextText
-  
+ 
   # -------------------------------------------------------------------------------------
   #  pad(inbuffer, ilen)  ==> string of ilen bytes;  pads string
   # -------------------------------------------------------------------------------------
