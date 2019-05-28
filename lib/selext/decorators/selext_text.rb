@@ -2,18 +2,16 @@
 
 def blank_or_strip(x)
 
-  if x.is_a?(String)
-
-    if x.nil?
-      return ''
-    else
-      return x.chomp.strip
-    end
-
-  else
-    return x
+  if x.nil?
+    return ''
   end
 
+  if x.is_a?(String)
+    return x.chomp.strip
+  end
+
+  return x
+  
 end
 
 
