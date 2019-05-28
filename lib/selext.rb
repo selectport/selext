@@ -18,6 +18,7 @@ extend self
 
   attr_accessor     :deployment_type              # local, server, docker
 
+  attr_accessor     :system_code                  # system_service code
 
   attr_accessor     :short_env                    # dev, test, prod 
   attr_accessor     :persisted_models_list        # array of physically persisted models
@@ -155,6 +156,12 @@ def initialize!(run_mode: nil)
 
   @deployment_type = 'docker'  if ENV['SELEXT_DEPLOYMENT'] == 'docker'
   @deployment_type = 'server'  if ENV['SELEXT_DEPLOYMENT'] == 'server'
+
+
+# ------------------------------------------------------------------------------
+# pick up service code
+
+  @service_code = ENV['SELEXT_SERVICE_CODE']
 
 # ------------------------------------------------------------------------------
 # SELEXT_PROJECT_DIRECTORY points at the root of this components directory tree
