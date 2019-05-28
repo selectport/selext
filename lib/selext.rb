@@ -159,9 +159,9 @@ def initialize!(run_mode: nil)
 
 
 # ------------------------------------------------------------------------------
-# pick up service code
+# pick up system code
 
-  @service_code = ENV['SELEXT_SERVICE_CODE']
+  @system_code = ENV['SELEXT_SYSTEM_CODE']
 
 # ------------------------------------------------------------------------------
 # SELEXT_PROJECT_DIRECTORY points at the root of this components directory tree
