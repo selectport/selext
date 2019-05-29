@@ -42,6 +42,8 @@ def self.connect_sut_db(database_tag)
                                          logger:              SelextConnX.sql_logger
                                          )
 
+      SelextConnX.current_database_tag = database_tag
+
     rescue PG::Error => e
 
       SelextConnX.sql_logger.info  "Error connecting to SUT database"
@@ -73,6 +75,7 @@ def self.close_sut_db
 
     SelextConnX.sutdb.disconnect
     SelextConnX.sutdb = nil
+    SelextConnX.current_database_tag = nil
 
   rescue Exception => e
 

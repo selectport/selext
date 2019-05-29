@@ -35,6 +35,7 @@ extend self
 # selext_conn_x sql query api calls to SUT
 
   attr_accessor     :sutdb
+  attr_accessor     :current_database_tag
   attr_accessor     :sql_logger
 
 # ------------------------------------------------------------------------------
@@ -62,6 +63,8 @@ def initialize!
   require_relative 'selext_conn_x_sql.rb'
   require_relative 'selext_conn_x_sql_logger.rb'
 
+  @current_database_tag = nil
+  
   @sql_logger = SelextConnX::SqlLogger.new
 
 # ------------------------------------------------------------------------------
