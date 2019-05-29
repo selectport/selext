@@ -30,7 +30,7 @@ module Selext
   end
 
   def Selext.contracts(*args)
-    File.expand_path(File.join(Selext.commons_directory, *args))
+    File.expand_path(File.join(Selext.commons_directory, 'contracts', *args))
   end
 
   def Selext.customizers(*args)
