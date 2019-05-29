@@ -282,7 +282,7 @@ task :ensureTables do |t|
       puts " "
 
 
-      Selext.persisted_models_list.each_pair do |model, values|
+      Selext.persisted_models_list.each do |model|
 
         table_name = get_table_name(model)
         model_file = get_model_file(model)
