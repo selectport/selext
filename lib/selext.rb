@@ -14,6 +14,7 @@ extend self
 
   attr_accessor     :environment                  # development, test, production
   attr_accessor     :project_directory            # top level project directory
+  attr_accessor     :commons_directory            # shared commons directory
   attr_accessor     :home                         # project_directory
 
   attr_accessor     :deployment_type              # local, server, docker
@@ -165,8 +166,10 @@ def initialize!(run_mode: nil)
 
 # ------------------------------------------------------------------------------
 # SELEXT_PROJECT_DIRECTORY points at the root of this components directory tree
+# SELEXT_COMMON_LIBRARY_DIRECTORY points at the root of the shared directory
 
   @project_directory = ENV['SELEXT_PROJECT_DIRECTORY'].to_s
+  @commons_directory = ENV['SELEXT_COMMON_LIBRARY_DIRECTORY'].to_s
   @home = @project_directory
 
 # ------------------------------------------------------------------------------

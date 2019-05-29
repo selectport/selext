@@ -29,6 +29,10 @@ module Selext
     File.expand_path(File.join(Selext.approot, 'command_cards', *args))
   end
 
+  def Selext.contracts(*args)
+    File.expand_path(File.join(Selext.commons_directory, *args))
+  end
+
   def Selext.customizers(*args)
     File.expand_path(File.join(Selext.homeroot, 'customizers', *args))
   end
