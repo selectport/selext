@@ -297,7 +297,7 @@ class SelextText
 
    return "" if (in_datetime == nil) 
 
-   in_datetime.as_selectport_display
+   in_datetime.as_selext_display
    
   end
 
@@ -310,7 +310,7 @@ class SelextText
    return "" if (in_datetime == nil) 
 
    tz_datetime = in_datetime.in_time_zone(in_time_zone)
-   tz_datetime.as_selectport_display
+   tz_datetime.as_selext_display
    
   end
 

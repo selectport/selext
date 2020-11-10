@@ -17,7 +17,7 @@ attr_accessor :app_version
     if File.exists?(vFilename)
 
       ovFile     = File.open(vFilename,'r')
-      curline    = ovFile.readline
+      curline    = ovFile.readline.chop
       ovFile.close
       @app_version = curline[0,11]
       return @app_version
@@ -27,7 +27,7 @@ attr_accessor :app_version
 
     # else return a blank string
 
-    @app_version = ''
+    @app_version = 'n/a'
 
 
   end # method get_app_version

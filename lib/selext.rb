@@ -3,29 +3,35 @@ module Selext
 extend self
 
   attr_accessor     :initmode                     # flag if called already
+
+  # required parameter to initialize!
+
   attr_accessor     :run_mode                     # symbolized mode we're running in
                                                   # selext runs in 1 of ? modes : 
                                                   # - :standalone - console, jobs, poros 
                                                   #                 ie. anything non-full rails
-                                                  # - :replay     - running in special replay mode
                                                   # - :in_rails   - running inside a ui server
-                                                  
-  attr_accessor     :replay_mode                  # Y/N in_replay mode
+
+  # these 4 MUST be defined in the enviornment variables
 
   attr_accessor     :environment                  # development, test, production
-  attr_accessor     :project_directory            # top level project directory
-  attr_accessor     :commons_directory            # shared commons directory
-  attr_accessor     :home                         # project_directory
+  attr_accessor     :root_directory               # top level project directory
+  attr_accessor     :database_support             # Y=include database support;
+                                                  # anything else=no database required
+  attr_accessor     :local_time_zone              # eg. 'Arizona'
+
+
+
+  # optional env variables can set these
 
   attr_accessor     :deployment_type              # local, server, docker
 
-  attr_accessor     :system_code                  # system_service code
+  # convenience accessors set within
 
   attr_accessor     :short_env                    # dev, test, prod 
-  attr_accessor     :persisted_models_list        # array of physically persisted models
-  attr_accessor     :all_models_list              # array of all (phys/virt) models
-
-  attr_accessor     :app_version                  # current app's version
+  attr_accessor     :project_directory            # app level project directory
+  attr_accessor     :home                         # project_directory
+  attr_accessor     :tz                           # local_time_zone alias
 
   attr_accessor     :logger                       # Selext::Logger instance
   attr_accessor     :log_level                    # current #.logger level set
@@ -36,23 +42,20 @@ extend self
                                                   # :info  => 1,
                                                   # :debug => 0}
 
+  attr_accessor     :app_version                  # current app's version
+  
+  
+  # if database access is being used, set these in env
+
   attr_accessor     :databases                    # array of database configs from yaml
   attr_accessor     :database_info                # single entry from databases for this env
   attr_accessor     :database_name                # resolved database name for env/yaml
   attr_accessor     :database_root                # database root name from env
   attr_accessor     :database_user                # database user from env
+  attr_accessor     :database_super_user          # database super_user from env
   attr_accessor     :database_password            # database password from env
   attr_accessor     :database_host                # database host from env
-  attr_accessor     :database_port                # database port from env
- 
-  attr_accessor     :tracer                       # activity tracer instance 
-                                                  # or nil if no tracing
-
-  attr_accessor     :is_tracing                   # true if tracer isn't null
-
-  attr_accessor     :gem_dir                      # absolute path where this gem is installed
-
-  attr_accessor     :xtalk_root                   # root path for the xtalk library tree
+  attr_accessor     :database_port                # database port from env 
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
@@ -69,17 +72,11 @@ def initialize!(run_mode: nil)
 
   @initmode = 'inflight'
 
-# --------------------------------------------------------------------------
-# require SolidAssert and enable (before bundler does)
-
-  require 'solid_assert'
-  ::SolidAssert.enable_assertions
-
 # ------------------------------------------------------------------------------
 # load the class decorators
 
-  require_relative './selext/decorators/selext_dates.rb'
   require_relative './selext/decorators/selext_mash.rb'
+  require_relative './selext/decorators/selext_dates.rb'
   require_relative './selext/decorators/selext_text.rb'
 
 # blank duplicates functionality in active_support
@@ -95,7 +92,6 @@ def initialize!(run_mode: nil)
     require_relative './selext/decorators/blank'
   end
 
-
   require_relative './selext/decorators/boolean.rb'
   require_relative './selext/decorators/hash.rb'
   require_relative './selext/decorators/jsonify.rb'
@@ -104,38 +100,20 @@ def initialize!(run_mode: nil)
   require_relative './selext/decorators/selext_ckdigit.rb'
   
 # ------------------------------------------------------------------------------
-# set @run_mode
-#
-#   run_mode is either :
-#     :standalone (poros, jobs, etc) 
-#     :replay     (running in replay mode)
-#     :in_rails   (running in a rails ui server)
+# load fintypes
 
-  @run_mode = nil
+# fintypes provides rounding, nice formatting of numbers, and some
+# concepts of business days, bank days, settlement days, and processing days
 
-  case 
+  require_relative './fintypes.rb'
+  ::Fintypes.initialize!
 
-  when run_mode.blank?
-    raise StandardError, "Missing run_mode for Selext.initialize!"
-
-  when run_mode.to_s.downcase == 'standalone'
-    @run_mode       = :standalone               # console mode 
-    @replay_mode    = "N"
-
-  when run_mode.to_s.downcase == 'in_rails'     # rails ui only server
-    @run_mode       = :in_rails
-    @replay_mode    = "N"
-
-  else
-    raise StandardError, "Invalid run mode specified : #{run_mode}"
-
-  end
-  
 # --------------------------------------------------------------------------
-  # note: that root directory and environments are the only bootstrapped 
+  # note: that root directory and environment are the only bootstrapped 
   # environment variables required outside of our config ...
 
   @environment = ENV.fetch('SELEXT_ENVIRONMENT')
+  @root_directory = ENV.fetch('SELEXT_PROJECT_ROOT')
 
   # set a short-form environment eg. dev, test, prod
 
@@ -159,30 +137,45 @@ def initialize!(run_mode: nil)
   @deployment_type = 'server'  if ENV['SELEXT_DEPLOYMENT'] == 'server'
 
 
-# ------------------------------------------------------------------------------
-# pick up system code
-
-  @system_code = ENV['SELEXT_SYSTEM_CODE']
-
-# ------------------------------------------------------------------------------
-# SELEXT_PROJECT_DIRECTORY points at the root of this components directory tree
-# SELEXT_COMMON_LIBRARY_DIRECTORY points at the root of the shared directory
-
   @project_directory = ENV['SELEXT_PROJECT_DIRECTORY'].to_s
-  @commons_directory = ENV['SELEXT_COMMON_LIBRARY_DIRECTORY'].to_s
-  @home = @project_directory
+  @project_directory = @root_directory if @project_directory.blank?
+  @home              = @project_directory
+
+# must set local_time_zone
+
+  @local_time_zone   = ENV.fetch('SELEXT_LOCAL_TIME_ZONE')
+  @tz                = @local_time_zone
 
 # ------------------------------------------------------------------------------
-# affix this gem's install directory 
-  
-  @gem_dir = File.dirname(File.expand_path(File.join(__FILE__,'./../')))
+# set @run_mode
+#
+#   run_mode is either :
+#     :standalone (poros, jobs, etc) 
+#     :in_rails   (running in a rails ui server)
 
+  @run_mode = nil
+
+  case 
+
+  when run_mode.blank?
+    raise StandardError, "Missing run_mode for Selext.initialize!"
+
+  when run_mode.to_s.downcase == 'standalone'
+    @run_mode       = :standalone               # console mode 
+
+  when run_mode.to_s.downcase == 'in_rails'     # rails ui only server
+    @run_mode       = :in_rails
+
+  when run_mode.to_s.downcase
+
+  else
+    raise StandardError, "Invalid run mode specified : #{run_mode}"
+
+  end
+  
 # ------------------------------------------------------------------------------
-# set the xtalk library root (it has project-specific proto stubs and service
-# defs so must exist outside the gem)
+# ------------------------------------------------------------------------------
 
-  @xtalk_root = File.join(ENV['SELEXT_COMMON_LIBRARY_DIRECTORY'], 'xtalk')
-  
 # ------------------------------------------------------------------------------
 # setup databases environment from ENV and config
 
@@ -190,15 +183,30 @@ def initialize!(run_mode: nil)
 
   @database_root          = nil
   @database_user          = nil
+  @database_super_user    = nil
   @database_password      = nil
   @database_host          = nil
   @database_port          = nil
+  @database_name          = nil
+  @database_info          = nil
   
-  @database_root          = ENV.fetch('SELEXT_DATABASE_ROOT')
-  @database_password      = ENV.fetch('SELEXT_DATABASE_PASSWORD')
-  @database_host          = ENV.fetch('SELEXT_DATABASE_HOST')
-  @database_port          = ENV.fetch('SELEXT_DATABASE_PORT')
- 
+  @database_support       = ENV.fetch('SELEXT_DATABASE_SUPPORT')
+
+  if @database_support == 'Y'
+
+    @database_host          = ENV.fetch('SELEXT_DATABASE_HOST')
+    @database_port          = ENV.fetch('SELEXT_DATABASE_PORT')
+    @database_name          = ENV.fetch('SELEXT_DATABASE_NAME')
+
+    # note : these may be overridden via credentials when connecting below
+
+    @database_root          = ENV.fetch('SELEXT_DATABASE_ROOT')
+    @database_password      = ENV.fetch('SELEXT_DATABASE_PASSWORD')
+    @database_user          = ENV.fetch('SELEXT_DATABASE_USER')
+    @database_super_user    = ENV.fetch('SELEXT_DATABASE_SUPER_USER')
+    @database_info          = ENV.fetch('SELEXT_DATABASE_INFO')
+
+  end
 
 # ------------------------------------------------------------------------------
 # load and define our core helpers;
@@ -223,30 +231,6 @@ def initialize!(run_mode: nil)
   end
 
 # ------------------------------------------------------------------------------
-# Set up the models lists :
-#
-#  persisted_models_list lets us know which models have a physical backing; used heavily
-#  in the dbase rake tasks, ensure tables, etc. meta level;  only loads the arrays
-#  here ...
-#
-#  models_list lets us know all the models that the selext application tree
-#  knows about;  
-
-  @persisted_models_list = []
-
-  global_file = Selext.configroot('selext_models_list.rb')
-  
-    unless File.exist?(global_file)
-        raise StandardError, 
-              "Selext Global Model List configuration not located at #{global_file}"
-    end
-
-  require global_file
-
-  Selext.persisted_models_list = Selext.set_persisted_models_list
-  Selext.all_models_list       = Selext.set_all_models_list
-
-# # ------------------------------------------------------------------------------
 # require logger and set log levels;  default to stdout unless LOG_OUTPUT is set
 
   require_relative './selext/lib/selext_logger.rb'
@@ -273,17 +257,9 @@ def initialize!(run_mode: nil)
   Selext.logger.level = @log_level
 
 # ------------------------------------------------------------------------------
-# setup tracing if requested via env variable
+# small collection of utility routines
 
-  require_relative './selext/lib/tracer.rb'
-
-  @is_tracing = ENV['SELEXT_TRACE_ACTIVITY'] || 'N'
-
-  if @is_tracing == 'N'
-      @tracer = TracerLogger.new(:NULL)
-  else
-      @tracer = TracerLogger.new(Selext.logroot('activity_tracer.log'))
-  end
+  require_relative './selext/lib/selext_utils.rb'
 
 # ------------------------------------------------------------------------------
 # require/define Selext.get_app_version which can be used to load the application
@@ -295,76 +271,6 @@ def initialize!(run_mode: nil)
 
   @app_version = Selext.get_app_version 
  
-# ------------------------------------------------------------------------------
-# small collection of utility routines
-
-  require_relative './selext/lib/utils.rb'
-  require_relative './selext/lib/message_serializer.rb'
- 
-# ------------------------------------------------------------------------------
-# set database name from root + environment
-
-  require 'sequel'
-
-  require_relative './selext/lib/get_sequel_database_config.rb'
-  Selext.get_sequel_database_config
-
-# ------------------------------------------------------------------------------
-# connect sequel database to global ::DB variable
-
-  require_relative './selext/lib/connect_sequel.rb'
-
-# ------------------------------------------------------------------------------
-# connect Que
-
-  Que.connection = DB
-  
-# ------------------------------------------------------------------------------
-# require all our base classes from selext_base/
-
-  require_relative "./selext/base_classes/origin_context.rb"
-  require_relative "./selext/base_classes/queued_job.rb"
-  require_relative "./selext/base_classes/que_queued_job.rb"
-  require_relative "./selext/base_classes/selext_form.rb"
-  require_relative "./selext/base_classes/selext_handler_retsts.rb"
-  require_relative "./selext/base_classes/selext_handler.rb"
-  require_relative "./selext/base_classes/selext_request.rb"
-  require_relative "./selext/base_classes/selext_response.rb"
-  require_relative "./selext/base_classes/selext_job_stats.rb"
-  require_relative "./selext/base_classes/selext_job_handler.rb"
-
-# --------------------------------------------------------------------------
-# require all model files
-
-  require_relative './selext/lib/require_models.rb'
-
-  Selext.require_models
-  
-# --------------------------------------------------------------------------
-# require enums and validators
-
-  require_relative './selext/lib/require_enums.rb'
-  require_relative './selext/lib/require_validators.rb'
-
-  Selext.require_enums
-  Selext.require_validators
-
-# --------------------------------------------------------------------------
-# require app_utils if they exist
-
-  if Dir.exist?(Selext.app_utils)
-    Selext::Utils.require_glob(Selext.app_utils("**/*.rb"))
-  end
-  
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-# load and initialize SelextConnX for synchronous communication with our System
-# Under Test (SUT)
-
-  require_relative 'selext/selext_conn_x/selext_conn_x.rb'
-  SelextConnX.initialize!
-
-
 # --------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 # all done ! - flip initmode - won't be rerun if accidentally called
@@ -374,18 +280,9 @@ def initialize!(run_mode: nil)
 
 end  # initialize!
 
-# ------------------------------------------------------------------------------
-# define a convenient boolean method
-  
-  def self.tracing?
-    @is_tracing == 'Y' ? true : false
-  end
 
-# ------------------------------------------------------------------------------
-private
-
-
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------ 
+# ------------------------------------------------------------------------------ 
 
 end # module
+

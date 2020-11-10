@@ -1,5 +1,3 @@
 module Selext
-  def self.version
-    '4.0.25'
-  end
+  VERSION = "0.1.0"
 end

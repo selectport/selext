@@ -10,6 +10,10 @@ module Selext
     File.expand_path(File.join(Selext.home, 'app', *args))
   end
 
+  def Selext.applib(*args)      # {project_directory}/app/lib
+    File.expand_path(File.join(Selext.home, 'app', 'lib', *args))
+  end
+  
   def Selext.app_utils(*args) 
     File.expand_path(File.join(Selext.home, 'app', 'lib', 'app_utils', *args))
   end
@@ -21,16 +25,17 @@ module Selext
   def Selext.configroot(*args)  # {project_directory}/config
     File.expand_path(File.join(Selext.home, 'config', *args))
   end
+
   def Selext.commands(*args)
-    File.expand_path(File.join(Selext.approot, 'commands', *args))
+    File.expand_path(File.join(Selext.approot, 'lib', 'commands', *args))
   end
 
   def Selext.command_cards(*args)
     File.expand_path(File.join(Selext.approot, 'command_cards', *args))
   end
-
+ 
   def Selext.contracts(*args)
-    File.expand_path(File.join(Selext.commons_directory, 'contracts', *args))
+    File.expand_path(File.join(Selext.applib, 'contracts', *args))
   end
 
   def Selext.customizers(*args)
@@ -60,11 +65,15 @@ module Selext
   def Selext.job_cards(*args)
     File.expand_path(File.join(Selext.home, 'app', 'jobs', 'job_cards', *args))
   end
-  
+
   def Selext.job_handlers(*args) 
     File.expand_path(File.join(Selext.home, 'app', 'jobs', 'job_handlers', *args))
   end
 
+  def Selext.job_registry(*args)
+    File.expand_path(File.join(Selext.home, 'app', 'jobs', 'job_registry', *args))
+  end
+  
   def Selext.jobsroot(*args)    # {project_directory}/app/jobs
     File.expand_path(File.join(Selext.home, 'app', 'jobs', *args))
   end
@@ -82,23 +91,15 @@ module Selext
   end
 
   def Selext.models(*args)      # {project_directory}/app/models
-    File.expand_path(File.join(Selext.home, 'app', 'models', *args))
+    File.expand_path(File.join(Selext.approot, 'models', *args))
   end
 
   def Selext.probes(*args)
-    File.expand_path(File.join(Selext.approot, 'probes', *args))
-  end
-
-  def Selext.protos(*args)
-    File.expand_path(File.join(Selext.xtalk_root, 'xtalk', 'grpc', *args))
+    File.expand_path(File.join(Selext.approot, 'lib', 'probes', *args))
   end
 
   def Selext.queries(*args)
-    File.expand_path(File.join(Selext.approot, 'queries', *args))
-  end
-
-  def Selext.registries(*args)
-    File.expand_path(File.join(Selext.home, 'app', 'registries', *args))
+    File.expand_path(File.join(Selext.approot, 'lib', 'queries', *args))
   end
 
   def Selext.routes(*args)
@@ -153,15 +154,9 @@ module Selext
   end
 
 
-  # for reaching into the gem's rake tasks
-
-  def Selext.gemroot(*args)
-    File.expand_path(File.join(Selext.gem_dir, *args))
+  def Selext.current_time
+    Time.now.localtime.in_time_zone('Arizona').iso8601
   end
-
-  def Selext.gemtasks(*args)
-    File.expand_path(File.join(Selext.gem_dir, 'lib', 'selext', 'raketasks', *args))
-  end
-
+  
 # ------------------------------------------------------------------------------
 end # Selext module
