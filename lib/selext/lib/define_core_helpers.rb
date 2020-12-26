@@ -118,8 +118,8 @@ module Selext
 # ------------------------------------------------------------------------------
 
   def Selext.gemroot(*args)
-    base_dir = File.basedir(File.basedir(__FILE__))
-    File.expand_path(basedir, *args))
+    base_dir = File.basename(File.basedir(__FILE__))
+    File.expand_path(basedir, *args)
   end
   
 # ------------------------------------------------------------------------------
