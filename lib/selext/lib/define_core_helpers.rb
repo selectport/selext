@@ -117,6 +117,12 @@ module Selext
 
 # ------------------------------------------------------------------------------
 
+  def Selext.gemroot(*args)
+    File.expand_path(File.join(__FILE__, *args))
+  end
+  
+# ------------------------------------------------------------------------------
+
   # convenience environment mappers
 
   def Selext.development?
