@@ -7,13 +7,13 @@ module Selext
 # tree.   
 #
 # aids in readying and publishing a release candidate following the standard
-# develop->release->master git branching workflow model
+# develop->release->main git branching workflow model
 #
 # class consists of a primary entry method (called by rake task) : 
 #
 #
-#   express_release - which takes the release branch and merges it into the master
-#                     branch, tags it, and pushes it to master/origin - which 
+#   express_release - which takes the release branch and merges it into the main
+#                     branch, tags it, and pushes it to main/origin - which 
 #                     normally will then trigger the cicd builds
 #
 # note that there is extensive 'environment' checking done so that the rules
@@ -38,7 +38,7 @@ def self.express_release
   # 1. You must be on develop branch
   # 2. Develop branch must have had all feature releases subs merged into it cleanly
   #    already.  This includes all relprocs in the next_release directory
-  # 3. Should not be any reason that develop->master should yield any conflicts
+  # 3. Should not be any reason that develop->main should yield any conflicts
   #    (which is the normal expectation unless release flow has been violated!)
 
 
@@ -98,49 +98,49 @@ def self.express_release
   assert self.ensure_clean_branch,
          self.billboard("Release branch must have no uncommitted/untracked activity")
 
-  # now we'll checkout master so we operate next set of steps from there
+  # now we'll checkout main so we operate next set of steps from there
     
     puts " "
     puts "Release #{active_version} is ready for publishing."
     
     git_repo = Git.open('.')
-    git_repo.branch('master').checkout
+    git_repo.branch('main').checkout
 
     puts " "
-    puts "... Checked out branch master"
+    puts "... Checked out branch main"
     puts " "
 
 
-  # Merge branch release_#{active_version} into local master"
+  # Merge branch release_#{active_version} into local main"
 
     cmd = "git merge --no-ff release_#{active_version} -m 'publishing release_#{active_version}'"
     retsts = `#{cmd}`
       raise StandardError, "Fatal subprocess return status" unless $?.exitstatus == 0
 
     puts " "
-    puts "... merged release_#{active_version} into master"
+    puts "... merged release_#{active_version} into main"
     puts " "
 
 
-  # Tag Master release with version stamp
+  # Tag main release with version stamp
 
     cmd = "git tag -a #{active_version} -m #{active_version}" 
     retsts = `#{cmd}`
       raise StandardError, "Fatal subprocess return status" unless $?.exitstatus == 0
 
     puts " "
-    puts "... tagged release as #{active_version} in master"
+    puts "... tagged release as #{active_version} in main"
     puts " "
 
 
-  # Push master to origin
+  # Push main to origin
 
-    cmd = "git push origin master --tags"
+    cmd = "git push origin main --tags"
     retsts = `#{cmd}`
       raise StandardError, "Fatal subprocess return status" unless $?.exitstatus == 0
 
     puts " "
-    puts "... pushed master to remote origin repository"
+    puts "... pushed main to remote origin repository"
     puts " "
 
   # now cleanup develop branch
