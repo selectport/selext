@@ -59,8 +59,8 @@ def self.express_release
 
   if Dir.exist?(Selext.approot('assets'))
 
-    cmd = 'RAILS_ENV=production rake -f Rakefile_rails assets:clean && ' + 
-          'RAILS_ENV=production rake -f Rakefile_rails assets:precompile'
+    cmd = 'RAILS_ENV=production rake assets:clean && ' + 
+          'RAILS_ENV=production rake assets:precompile'
           
     retsts = `#{cmd}`
       raise StandardError, "Fatal asset compiling tasks" unless $?.exitstatus == 0
