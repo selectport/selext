@@ -59,6 +59,13 @@ extend self
   attr_accessor     :database_host                # database host from env
   attr_accessor     :database_port                # database port from env 
 
+  # application stack configurations
+
+  attr_accessor     :system_code                  # each component has a system code
+  attr_accessor     :traqs_mode                   # server, client, none
+  attr_accessor     :jobmgmt_mode                 # server, client, standalone, none
+  attr_accessor     :authnav_mode                 # server, client, api_client, standalone, none
+
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 
@@ -233,6 +240,12 @@ def initialize!(run_mode: nil)
   end
 
 # ------------------------------------------------------------------------------
+# setup the application configuration
+
+  require_relative './selext/lib/load_app_configuration.rb'
+  Selext.load_app_configuration
+
+# ------------------------------------------------------------------------------
 # Set up the models lists :
 #
 #  persisted_models_list lets us know which models have a physical backing; used heavily
@@ -300,16 +313,15 @@ def initialize!(run_mode: nil)
 # ------------------------------------------------------------------------------
 # set database name from root + environment & connect AR
 
-  require 'active_record'
-  
-  require_relative './selext/lib/get_database_config.rb'
-  Selext.get_database_config
-    
-  require_relative './selext/lib/connect_database_ar.rb'
 
-  unless @run_mode == :in_rails
-    Selext.connect_database_ar
-  end
+    require 'active_record'
+    
+    require_relative './selext/lib/get_database_config.rb'
+    Selext.get_database_config
+      
+    require_relative './selext/lib/connect_database_ar.rb'
+
+    Selext.connect_database_ar  unless @run_mode == :in_rails
 
 # ------------------------------------------------------------------------------
 # require all our base classes from selext_base/
