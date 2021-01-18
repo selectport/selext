@@ -27,7 +27,7 @@ module Selext
   end
 
   def Selext.commands(*args)
-    File.expand_path(File.join(Selext.approot, 'cqrs', 'commands', *args))
+    File.expand_path(File.join(Selext.approot, 'services', 'commands', *args))
   end
 
   def Selext.command_cards(*args)
@@ -99,7 +99,7 @@ module Selext
   end
 
   def Selext.queries(*args)
-    File.expand_path(File.join(Selext.approot, 'cqrs', 'queries', *args))
+    File.expand_path(File.join(Selext.approot, 'services', 'queries', *args))
   end
 
   def Selext.routes(*args)

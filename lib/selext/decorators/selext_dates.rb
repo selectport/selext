@@ -23,6 +23,28 @@ class SelextDate
     require 'date'
 
     # --------------------------------------------------------------------------
+    #  format timestamp or show n/a;  datetime is a Timestamp 
+    # --------------------------------------------------------------------------
+
+    def SelextDate.timestamp_or(datetime)
+
+      return "n/a" if datetime.nil?
+      return "n/a" if datetime.is_a?(String) && datetime.blank?
+
+      retval = ''
+
+      begin
+        t = datetime.in_time_zone('Arizona')
+        retval = t.as_selext_display
+      rescue
+        retval = "n/a"
+      end
+
+      retval
+      
+    end
+
+    # --------------------------------------------------------------------------
     #  standard ruby Date ==> yyyymmdd as string
     # --------------------------------------------------------------------------
 

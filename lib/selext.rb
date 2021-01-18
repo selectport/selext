@@ -66,6 +66,21 @@ extend self
   attr_accessor     :jobmgmt_mode                 # server, client, standalone, none
   attr_accessor     :authnav_mode                 # server, client, api_client, standalone, none
 
+  attr_accessor     :allow_emails                 # set env ALLOW_EMAILS to "Y"
+                                                  # to allow emails to be created; 
+                                                  # otherwise, emails will be truncated
+
+  # provide an accessor for each value defined in the env file
+  # these could change for an application based on install/client
+
+  attr_accessor     :org_short_name
+  attr_accessor     :org_long_name
+  attr_accessor     :org_domain
+
+  attr_accessor     :portal_name
+  attr_accessor     :org_home_base_url
+  attr_accessor     :org_logo_url
+
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 
@@ -214,6 +229,33 @@ def initialize!(run_mode: nil)
     @database_user          = ENV.fetch('SELEXT_DATABASE_USER')
     @database_super_user    = ENV.fetch('SELEXT_DATABASE_SUPER_USER')
     @database_info          = ENV.fetch('SELEXT_DATABASE_INFO')
+
+  end
+ 
+# ------------------------------------------------------------------------------
+# pick up the ENV Installation variables and load to Selext
+
+  require_relative './selext/lib/load_installation_params.rb'
+  self.load_installation_params
+
+# ------------------------------------------------------------------------------
+# pickup allow email flag
+
+  @allow_email            = 'N'  # default to N unless we find the variable
+
+  if ENV.has_key?("ALLOW_EMAILS")
+
+    case ENV["ALLOW_EMAILS"]
+
+    when 'Y'
+      @allow_emails = 'Y'
+    when 'N'
+      @allow_emails = 'N'
+    when 'C'
+      @allow_emails = 'C'   # local capture mode only (mac: mailcatcher)
+    else
+      raise StandardError, "Invalid value for ENV['ALLOW_EMAILS'] "
+    end
 
   end
 
