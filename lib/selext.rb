@@ -369,6 +369,7 @@ def initialize!(run_mode: nil)
 # require all our base classes from selext_base/
 
   require_relative "./selext/base_classes/selext_form.rb"
+  require_relative "./selext/base_classes/selext_service.rb"
   
 # --------------------------------------------------------------------------
 # require all model files
