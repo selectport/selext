@@ -38,10 +38,27 @@ def initialize!
 
   return if @initmode == 'initialized'
 
+  # load the 4 holiday arrays from the project's customizers/fintypes_calendars.rb
+  # file;  unfortunately, this loads before full selext framework does, so we must
+  # manually map onto the customizers directory (as is done in Selext.customizers)
+
   @bank_holidays = []
   @proc_holidays = []
   @sett_holidays = []
-  @bizn_holidays = []
+  @biz_holidays  = []
+
+  cal_file = File.expand_path(File.join(Selext.home, 'customizers', 'fintypes_calendars.rb'))
+
+  if File.exists?(cal_file)
+
+    require cal_file
+
+    @bank_holidays = Fintypes::BANK_HOLIDAYS
+    @proc_holidays = Fintypes::PROCESSING_HOLIDAYS
+    @sett_holidays = Fintypes::SETTLEMENT_HOLIDAYS
+    @biz_holidays  = Fintypes::BUSINESS_HOLIDAYS
+
+  end
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------

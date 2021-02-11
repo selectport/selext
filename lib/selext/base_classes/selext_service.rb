@@ -1,5 +1,5 @@
 module SelextService
-  
+
 # ------------------------------------------------------------------------------
 
 class Result
@@ -40,14 +40,20 @@ end # included class Result
 
 def log_errors(e)
 
-  unless Selext.test?
-    Selext.logger.error "Error Processing #{self.class.name}"
-    Selext.logger.error "exception: #{e.inspect}"
-    STDERR.puts e.backtrace
-    STDERR.puts "----"
+  # suppress exception reporting to the logs if we are testing...
+
+  unless Selext.testing?
+
+    puts("\nSERVICE HANDLER EXCEPTION \n #{e.message} \n")
+
+    e.backtrace.each do |eline|
+      puts eline
+    end
+
   end
 
-    errors = {'error on save': "#{e}"}
+
+  errors = {'error on save': "#{e}"}
 
 end # log_errors
 

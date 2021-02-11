@@ -12,6 +12,13 @@ extend self
                                                   #                 ie. anything non-full rails
                                                   # - :in_rails   - running inside a ui server
 
+  attr_accessor     :model_mode                   # which models list to load; defaults to 'all'
+                                                  # which loads from config/selext_models_list.rb
+                                                  # if any other value, looks to load from 
+                                                  # config/_selext_models_#{model_mode.to_s}.rb
+                                                  # and can be used to specify a limited set of
+                                                  # models to load from (eg. for skinny jobs)
+
   # these 4 MUST be defined in the enviornment variables
 
   attr_accessor     :environment                  # development, test, production
@@ -84,7 +91,7 @@ extend self
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 
-def initialize!(run_mode: nil)
+def initialize!(run_mode: nil, model_mode: 'all')
 
   return if @initmode == 'initialized'
 
@@ -123,14 +130,6 @@ def initialize!(run_mode: nil)
   require_relative './selext/decorators/time.rb'
   require_relative './selext/decorators/selext_ckdigit.rb'
   
-# ------------------------------------------------------------------------------
-# load fintypes
-
-# fintypes provides rounding, nice formatting of numbers, and some
-# concepts of business days, bank days, settlement days, and processing days
-
-  require_relative './fintypes.rb'
-  ::Fintypes.initialize!
 
 # --------------------------------------------------------------------------
   # note: that root directory and environment are the only bootstrapped 
@@ -196,8 +195,33 @@ def initialize!(run_mode: nil)
     raise StandardError, "Invalid run mode specified : #{run_mode}"
 
   end
-  
+ 
 # ------------------------------------------------------------------------------
+# load fintypes
+
+# fintypes provides rounding, nice formatting of numbers, and some
+# concepts of business days, bank days, settlement days, and processing days
+
+  require_relative './fintypes.rb'
+  Fintypes.initialize!
+ 
+# ------------------------------------------------------------------------------
+
+@model_mode = nil
+
+case 
+
+when model_mode.to_s.blank?
+  @model_mode = 'all'
+
+when model_mode.to_s.downcase == 'all'
+  @model_mode = 'all'
+
+else
+  @model_mode = model_mode.to_s.downcase
+
+end
+
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
@@ -295,16 +319,27 @@ def initialize!(run_mode: nil)
 #  here ...
 #
 #  models_list lets us know all the models that the selext application tree
-#  knows about;  
+#  knows about;  by default, model_mode = 'all' and that loads from 
+#  config/selext_models_list.rb;   other modes load from config/selext_models_list_#{model_mode}.rb
+#  in order to provide a 'skinnier' list of models that are loaded and parsed 
 
   @persisted_models_list = []
 
-  global_file = Selext.configroot('selext_models_list.rb')
+  if @model_mode == 'all'
+
+    global_file = Selext.configroot('selext_models_list.rb')
+
+  else
+
+    global_file = Selext.configroot("selext_models_list_#{@model_mode}.rb")
+
+  end
+
   
-    unless File.exist?(global_file)
-        raise StandardError, 
-              "Selext Global Model List configuration not located at #{global_file}"
-    end
+  unless File.exist?(global_file)
+      raise StandardError, 
+            "Selext Global Model List configuration not located at #{global_file}"
+  end
 
   require global_file
 
