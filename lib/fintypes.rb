@@ -53,10 +53,10 @@ def initialize!
 
     require cal_file
 
-    @bank_holidays = Fintypes::BANK_HOLIDAYS
-    @proc_holidays = Fintypes::PROCESSING_HOLIDAYS
-    @sett_holidays = Fintypes::SETTLEMENT_HOLIDAYS
-    @biz_holidays  = Fintypes::BUSINESS_HOLIDAYS
+    @bank_holidays = Fintypes::BANK_HOLIDAYS.map { |x| SelextDate.crunch(x).to_i }
+    @proc_holidays = Fintypes::PROCESSING_HOLIDAYS.map { |x| SelextDate.crunch(x).to_i }
+    @sett_holidays = Fintypes::SETTLEMENT_HOLIDAYS.map { |x| SelextDate.crunch(x).to_i }
+    @biz_holidays  = Fintypes::BUSINESS_HOLIDAYS.map { |x| SelextDate.crunch(x).to_i }
 
   end
 
