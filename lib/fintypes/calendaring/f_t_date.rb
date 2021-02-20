@@ -121,6 +121,27 @@ class FTdate
     end
   end
 
+  def day_abbrev
+
+    case @full.wday
+
+    when 0
+      return 'Su'
+    when 1
+      return 'Mo'
+    when 2
+      return 'Tu'
+    when 3
+      return 'We'
+    when 4
+      return 'Th'
+    when 5
+      return 'Fr'
+    when 6 
+      return 'Sa'
+    end
+  end
+
 
   def is_a_normal_business_day?
     Fintypes::BUSINESS_DAYS.include?(day_name)
@@ -148,6 +169,10 @@ class FTdate
     return false if is_not_a_normal_business_day?
     return false if Fintypes.proc_holidays.include?(@standard)
     return true
+  end
+
+  def is_not_a_proc_day?
+    !is_a_proc_day?
   end
 
   def is_a_sett_holiday?

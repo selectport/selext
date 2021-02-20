@@ -61,6 +61,32 @@ class SelextDate
 
     end
 
+    # --------------------------------------------------------------------------
+    #  standard ruby Date ==> yyyy-mm-dd as string
+    # --------------------------------------------------------------------------
+
+    def SelextDate.date2expdate(ddate)
+
+      assert ddate.class == Date
+
+      retdate = "yyyy-mm-dd"
+      retdate[0..3] = sprintf("%04d", ddate.year)
+      retdate[5..6] = sprintf("%02d", ddate.month)
+      retdate[8..9] = sprintf("%02d", ddate.day)
+
+      retdate
+
+    end
+
+    # --------------------------------------------------------------------------
+    #  yyyy-mm-dd ==> yyyymmdd as String
+    # --------------------------------------------------------------------------
+
+    def SelextDate.crunch(in_date)
+
+     in_date.gsub("-",'')
+
+    end
 
     # --------------------------------------------------------------------------
     #  mdy2stddate(mdy) ==> yyyymmdd as string
@@ -185,6 +211,38 @@ class SelextDate
         retdate[3,2] = yyyymmdd[6,2]
         retdate[6,4] = yyyymmdd[0,4]
 
+
+        return retdate
+        end
+
+     # --------------------------------------------------------------------------
+     # prettified(yyyy-mm-dd) => mm/dd/yyyy (mm/dd have no leading 0's)
+     # --------------------------------------------------------------------------
+
+      def SelextDate.prettified(yyyymmdd)
+      
+        retdate = "mm/dd/ccyy"
+
+        imon = yyyymmdd[5,2].to_i
+        iday = yyyymmdd[8,2].to_i
+
+        retdate = "#{imon}/#{iday}/#{yyyymmdd[0,4]}" 
+
+        return retdate
+        end
+
+     # --------------------------------------------------------------------------
+     # short_prettified(yyyy-mm-dd) => mm/dd/yy (mm/dd have leading 0's)
+     # --------------------------------------------------------------------------
+
+      def SelextDate.short_prettified(yyyymmdd)
+      
+        retdate = "mm/dd/yy"
+
+        imon = yyyymmdd[5,2]
+        iday = yyyymmdd[8,2]
+
+        retdate = "#{yyyymmdd[5,2]}/#{yyyymmdd[8,2]}/#{yyyymmdd[2,2]}" 
 
         return retdate
         end
@@ -623,8 +681,49 @@ class SelextDate
         
 
         end      
+ 
+
+# ------------------------------------------------------------------------------
+# begdate, enddate are yyyy-mm-dd format;  returns array of yyyy-mm elements
+
+def self.months_between(begdate, enddate)
+
+
+  # set start and last so that they are in proper order;  we allow the input
+  # dates to be in either order
+
+  if begdate <= enddate
+    start_month = begdate[0,7]
+    last_month  = enddate[0,7]
+  else
+    start_month = enddate[0,7]
+    last_month  = begdate[0,7]
+  end
+
+  if start_month == last_month
+    return [start_month]
+  end
+
+  # not same month ... must calculate between
+
+  months = []
+
+  start_date = Date.parse("#{start_month}-01")
+  end_date   = Date.parse("#{last_month}-01")
+
+  cur_date   = start_date.dup
+
+  while cur_date <= end_date
+    months << cur_date.iso8601[0,7]
+    cur_date += 1.month
+  end
+
+  return months
+
+
+end # months_between
+
   
   # ======================================================================================================
 
   end  # class
-
