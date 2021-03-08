@@ -21,6 +21,7 @@ module Selext
     class RecordNotFound            < StandardError  ; end  # 529
     class SessionExpired            < StandardError  ; end  # 530
     class FeatureNotImplemented     < StandardError  ; end  # 531
+    class ApiError                  < StandardError  ; end  # 532
 
 # ------------------------------------------------------------------------------
 
