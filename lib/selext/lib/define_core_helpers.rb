@@ -168,6 +168,10 @@ module Selext
   def Selext.current_time
     Time.now.localtime.in_time_zone('Arizona').iso8601
   end
-  
+ 
+  def Selext.current_time_tz
+    Time.now.localtime.in_time_zone('Arizona')
+  end
+
 # ------------------------------------------------------------------------------
 end # Selext module
