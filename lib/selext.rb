@@ -73,6 +73,8 @@ extend self
   attr_accessor     :jobmgmt_mode                 # server, client, standalone, none
   attr_accessor     :authnav_mode                 # server, client, api_client, standalone, none
 
+  attr_accessor     :stage                        # stage || live 
+
   attr_accessor     :allow_emails                 # set env ALLOW_EMAILS to "Y"
                                                   # to allow emails to be created; 
                                                   # otherwise, emails will be truncated
@@ -163,6 +165,11 @@ def initialize!(run_mode: nil, model_mode: 'all')
   @project_directory = ENV['SELEXT_PROJECT_DIRECTORY'].to_s
   @project_directory = @root_directory if @project_directory.blank?
   @home              = @project_directory
+
+# pickup lifecycle stage (stage|live)
+
+  @stage = :live
+  @stage = :stage if ENV['SELEXT_STAGE'] == 'stage'
 
 # must set local_time_zone
 
@@ -423,6 +430,13 @@ end
 
   Selext.require_enums
   Selext.require_validators
+  
+# --------------------------------------------------------------------------
+# --------------------------------------------------------------------------
+# load and initialize the FeatureFlag global flag_defs
+
+  require_relative 'selext/feature_flags/feature_flags.rb'
+  FeatureFlags.initialize!
    
 # --------------------------------------------------------------------------
 # ------------------------------------------------------------------------------

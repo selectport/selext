@@ -154,6 +154,10 @@ module Selext
     @run_mode == :standalone ? true : false
   end
 
+  def Selext.stage?
+    @stage == :stage ? true : false
+  end
+
   def Selext.in_rails?
     @run_mode == :in_rails ? true : false
   end 
