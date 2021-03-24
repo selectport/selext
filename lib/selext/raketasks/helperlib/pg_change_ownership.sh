@@ -59,7 +59,7 @@ pgexec_echo() {
 DB_NAME=''
 NEW_OWNER=''
 SCHEMA='public'
-while getopts 'hd:o:s:' OPTION; do
+while getopts 'h:d:o:s:' OPTION; do
 	case $OPTION in
 		h) usage; exit 1;;
 		d) DB_NAME=$OPTARG;;
@@ -77,23 +77,23 @@ fi
 IFS=\0
 
 # Change owner of schema itself.
-pgexec_echo "ALTER SCHEMA \"$SCHEMA\" OWNER TO \"$NEW_OWNER\";"
+pgexec "ALTER SCHEMA \"$SCHEMA\" OWNER TO \"$NEW_OWNER\";"
 
 # Change owner of tables and views.
 for tbl in $(pgexec "SELECT table_name FROM information_schema.tables WHERE table_schema = '$SCHEMA';") \
            $(pgexec "SELECT table_name FROM information_schema.views WHERE table_schema = '$SCHEMA';"); do
-	pgexec_echo "ALTER TABLE \"$SCHEMA\".\"$tbl\" OWNER TO $NEW_OWNER;"
+	pgexec "ALTER TABLE \"$SCHEMA\".\"$tbl\" OWNER TO $NEW_OWNER;"
 done
 
 # Change owner of sequences.
 for seq in $(pgexec "SELECT sequence_name FROM information_schema.sequences WHERE sequence_schema = '$SCHEMA';"); do
-	pgexec_echo "ALTER SEQUENCE \"$SCHEMA\".\"$seq\" OWNER TO $NEW_OWNER;"
+	pgexec "ALTER SEQUENCE \"$SCHEMA\".\"$seq\" OWNER TO $NEW_OWNER;"
 done
 
 # Change owner of functions and procedures.
 for func in $(pgexec "SELECT quote_ident(p.proname) || '(' || pg_catalog.pg_get_function_identity_arguments(p.oid) || ')' \
                       FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace \
                       WHERE n.nspname = '$SCHEMA';"); do
-	pgexec_echo "ALTER FUNCTION \"$SCHEMA\".$func OWNER TO $NEW_OWNER;"
+	pgexec "ALTER FUNCTION \"$SCHEMA\".$func OWNER TO $NEW_OWNER;"
 done
 
