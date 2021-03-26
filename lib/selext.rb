@@ -419,8 +419,10 @@ end
   require_relative './selext/lib/require_enums.rb'
   require_relative './selext/lib/require_validators.rb'
 
-  Selext.require_enums
-  Selext.require_validators
+  unless @run_mode == :in_rails
+    Selext.require_enums
+    Selext.require_validators
+  end
   
 # --------------------------------------------------------------------------
 # require all model files
