@@ -412,16 +412,7 @@ end
 
   require_relative "./selext/base_classes/selext_form.rb"
   require_relative "./selext/base_classes/selext_service.rb"
-  
-# --------------------------------------------------------------------------
-# require all model files
 
-  require_relative './selext/lib/require_models.rb'
-
-  unless @run_mode == :in_rails
-    Selext.require_models
-  end
-  
 # --------------------------------------------------------------------------
 # require enums and validators
 
@@ -431,6 +422,15 @@ end
   Selext.require_enums
   Selext.require_validators
   
+# --------------------------------------------------------------------------
+# require all model files
+
+  require_relative './selext/lib/require_models.rb'
+
+  unless @run_mode == :in_rails
+    Selext.require_models
+  end
+    
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 # load and initialize the FeatureFlag global flag_defs
