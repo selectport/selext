@@ -19,8 +19,8 @@ class ReleaseManagement
 
 #   params = {}
 #   params['environment']      = 'production'
-#   params['rollbar_username'] = AppUtils.fetch_credential('rollbar')[:rollbar_username]
-#   params['access_token']     = AppUtils.fetch_credential('rollbar')[:rollbar_access_token]
+#   params['rollbar_username'] = AppUtils.fetch_credentials('rollbar')[:rollbar_username]
+#   params['access_token']     = AppUtils.fetch_credentials('rollbar')[:rollbar_access_token]
 #   params['local_username']   = 'scott@selectport.com'
 #   params['comment']          = "Version : #{version}"
 #   params['status']           = 'succeeded'
