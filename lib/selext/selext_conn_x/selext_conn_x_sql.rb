@@ -24,18 +24,18 @@ def self.connect_sutdb(database_tag)
         ::AppUtils::Credentials.fetch_credentials('prod_database_passwords')[database_tag.to_sym]
 
     SelextConnX.sql_logger.info(
-       "CONNECTING TO SUTDB  #{remote_database.database_name} on #{remote_database.database_host}")
+       "CONNECTING TO SUTDB  #{remote_database[:database_name]} on #{remote_database[:database_host]")
 
     begin
 
       SelextConnX.sql_logger.info "...connect to the database"
 
       SelextConnX.sutdb = Sequel.connect(adapter:             :postgres, 
-                                         database:            remote_database.database_name,
-                                         user:                remote_database.database_user,
+                                         database:            remote_database[:database_name],
+                                         user:                remote_database[:database_user],
                                          password:            remote_password,
-                                         host:                remote_database.database_host,
-                                         port:                remote_database.database_port,
+                                         host:                remote_database[:database_host],
+                                         port:                remote_database[:database_port],
                                          max_connections:     1, 
                                          pool_timeout:        5,
                                          log_connection_info: true,
