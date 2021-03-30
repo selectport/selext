@@ -5,13 +5,13 @@ module SelextConnX
 # SelextConnX.sutdb variable (instead of a global constant since we'll be
 # dynamically connecting/disconnecting as necessary)
 
-# database_tag is used to look up the connection information in the SUTDatabase
-# table of current app;  password is then fetched from our encrypted credentials
+# database_tag is used to look up the connection information in the service_databases
+# map;  password is then fetched from our encrypted credentials
 # in config/credentials.yml.enc
 
-def self.connect_sut_db(database_tag)
+def self.connect_sutdb(database_tag)
 
-  raise StandardError, "Missing database_tag on connect_sut_db call." if database_tag.blank?
+  raise StandardError, "Missing database_tag on connect_sutdb call." if database_tag.blank?
 
   if @sutdb.nil?
     
@@ -24,7 +24,7 @@ def self.connect_sut_db(database_tag)
         AppUtils.fetch_credential('prod_database_passwords')[database_tag.to_sym]
 
     SelextConnX.sql_logger.info(
-       "CONNECTING TO SUT_DB  #{remote_database.database_name} on #{remote_database.database_host}")
+       "CONNECTING TO SUTDB  #{remote_database.database_name} on #{remote_database.database_host}")
 
     begin
 
@@ -67,7 +67,7 @@ end
 # will disconnect from the connection pool and nil out our connection variable
 
 
-def self.close_sut_db
+def self.close_sutdb
 
   begin
 

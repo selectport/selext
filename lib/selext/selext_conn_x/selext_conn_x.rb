@@ -1,7 +1,9 @@
 module SelextConnX
 
 # ------------------------------------------------------------------------------
-# Small convenience utility for loading and connecting to SuT's via http
+# Small convenience utility for loading and connecting to external SuT's via http
+# and direct database reads via Sequel.
+#
 # This is really just a thin wrapper around an http connection library
 # (our default is httparty) - but that can be replaced easily.
 # 
@@ -33,6 +35,9 @@ extend self
   attr_accessor     :connections        # hash of connections to synchronous (http) services
 
 # selext_conn_x sql query api calls to SUT
+
+  attr_accessor     :service_databases
+  attr_accessor     :database_connections
 
   attr_accessor     :sutdb
   attr_accessor     :current_database_tag
@@ -67,6 +72,7 @@ def initialize!
   
   @sql_logger = SelextConnX::SqlLogger.new
 
+  SelextConnX.load_selextconnx_database_services_map!
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 # all done ! - flip initmode - won't be rerun if accidentally called
@@ -144,6 +150,39 @@ def self.load_selextconnx_service_map!
 
 end
 
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# load database_services map from config file ... this is an interface routine which
+# bridges config variables into selextconnx
+
+def self.load_selextconnx_database_services_map!
+
+  # in future we might want to support different map files based on what we're 
+  # running tests against ... use a var here and load right after ... 
+
+  map_file = Selext.configroot('service_databases_map.yaml')
+
+  unless File.exists?(map_file)
+    raise StandardError, "Missing SelextConnX mapping file :  #{map_file}"
+  end
+
+  # now load it from the config_file
+
+  @service_databases     = ::Concurrent::Map.new
+  @database_connections  = ::Concurrent::Map.new
+
+  hash = YAML.load_file(map_file)
+
+  if hash.has_key?('service_databases')
+
+    hash['service_databases'].each_pair do |k,element|
+      @service_databases.put_if_absent(k.to_sym,element)
+      @database_connections.put_if_absent(k.to_sym, nil)
+    end
+
+  end
+
+end
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
