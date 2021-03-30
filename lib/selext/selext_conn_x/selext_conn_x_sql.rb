@@ -21,7 +21,7 @@ def self.connect_sutdb(database_tag)
       end
 
     remote_password = 
-        AppUtils.fetch_credentials('prod_database_passwords')[database_tag.to_sym]
+        ::AppUtils::Credentials.fetch_credentials('prod_database_passwords')[database_tag.to_sym]
 
     SelextConnX.sql_logger.info(
        "CONNECTING TO SUTDB  #{remote_database.database_name} on #{remote_database.database_host}")
