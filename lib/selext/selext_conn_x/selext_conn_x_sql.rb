@@ -15,7 +15,7 @@ def self.connect_sut_db(database_tag)
 
   if @sutdb.nil?
     
-    remote_database = SUTDatabase.where(database_tag: database_tag.to_s).first
+    remote_database = SelextConnX.service_databases[database_tag.to_sym]
       unless remote_database
         raise StandardError, "Invalid database_tag for SUT : #{database_tag}"
       end
