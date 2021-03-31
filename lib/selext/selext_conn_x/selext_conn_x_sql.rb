@@ -31,11 +31,11 @@ def self.connect_sutdb(database_tag)
       SelextConnX.sql_logger.info "...connect to the database"
 
       SelextConnX.sutdb = Sequel.connect(adapter:             :postgres, 
-                                         database:            remote_database[:database_name],
-                                         user:                remote_database[:database_user],
+                                         database:            remote_database['database_name'],
+                                         user:                remote_database['database_user'],
                                          password:            remote_password,
-                                         host:                remote_database[:database_host],
-                                         port:                remote_database[:database_port],
+                                         host:                remote_database['database_host'],
+                                         port:                remote_database['database_port'],
                                          max_connections:     1, 
                                          pool_timeout:        5,
                                          log_connection_info: true,
