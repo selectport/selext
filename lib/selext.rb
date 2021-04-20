@@ -49,6 +49,9 @@ extend self
                                                   # :info  => 1,
                                                   # :debug => 0}
 
+  attr_accessor     :tracer                       # Selext::Tracer instance
+  attr_accessor     :is_tracing                   # 
+
   attr_accessor     :app_version                  # current app's version
   
   attr_accessor     :persisted_models_list        # array of physically persisted models
@@ -68,7 +71,16 @@ extend self
 
   # application stack configurations
 
-  attr_accessor     :system_code                  # each component has a system code
+  attr_accessor     :system_code                  # each component has a system code; excludes sequencs
+                                                  # eg. coresvc 
+
+  attr_accessor     :system_name                  # same as system_code unless multiple node sequences
+                                                  # in which case it includes the sequence number
+                                                  # eg. coresvc01
+
+  attr_accessor     :service_seq                  # for single service components; leave blank;
+                                                  # for multi node service components; use '01', '02' ... etc
+
   attr_accessor     :traqs_mode                   # server, client, none
   attr_accessor     :jobmgmt_mode                 # server, client, standalone, none
   attr_accessor     :authnav_mode                 # server, client, api_client, standalone, none
@@ -379,6 +391,31 @@ end
   @log_level = Selext::Logger::LEVELS[level.to_sym]
   Selext.logger.level = @log_level
 
+
+# ------------------------------------------------------------------------------
+# activity tracing
+
+  require_relative './selext/lib/selext_tracer.rb'
+
+  tracer = ENV['SELEXT_ACTIVITY_TRACING']
+
+  if tracer.blank?
+
+    @is_tracing = false
+    @tracer = TracerLogger.new(:NULL)
+  
+  else
+
+    @is_tracing = true
+
+    if tracer == 'Y'  # use default tracer name
+      @tracer = TracerLogger.new
+    else
+      @tracer = TracerLogger.new(Selext.logroot(tracer))
+    end
+
+  end
+
 # ------------------------------------------------------------------------------
 # small collection of utility routines
 
@@ -411,6 +448,10 @@ end
 # require all our base classes from selext_base/
 
   require_relative "./selext/base_classes/selext_form.rb"
+  require_relative "./selext/base_classes/selext_handler.rb"
+  require_relative "./selext/base_classes/selext_handler_retsts.rb"
+  require_relative "./selext/base_classes/selext_request.rb"
+  require_relative "./selext/base_classes/selext_response.rb"
   require_relative "./selext/base_classes/selext_service.rb"
 
 # --------------------------------------------------------------------------
@@ -439,6 +480,14 @@ end
 
   require_relative 'selext/feature_flags/feature_flags.rb'
   FeatureFlags.initialize!
+  
+# --------------------------------------------------------------------------
+# --------------------------------------------------------------------------
+# load and initialize MeshServices for synchronous http communication with our
+# other internal Service Mesh service apps
+
+  require_relative 'selext/mesh_services/mesh_services.rb'
+  MeshServices.initialize!
    
 # --------------------------------------------------------------------------
 # ------------------------------------------------------------------------------

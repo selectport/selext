@@ -1,20 +1,23 @@
-module SelextConnX
+require Selext.applib('app_utils','credentials.rb')
+
+module MeshServices
+
+extend self
 
 # ------------------------------------------------------------------------------
-# Small convenience utility for loading and connecting to external SuT's via http
-# and direct database reads via Sequel.
+# Small convenience utility for loading and connecting to the other services 
+# in our internal service mesh.
 #
 # This is really just a thin wrapper around an http connection library
-# (our default is httparty) - but that can be replaced easily.
 # 
-# The target parameters are mapped via config/service_map.yaml.
+# The target parameters are mapped via config/service_mesh_map.yaml.
 #
-# There is an environment variable (SELEXTCONNX_DEFAULT_SERVICE) which maps
-# the default service from that service_map.yaml file for the current session;
-# it can be specified/overridden at connection time...
+# Note that there is a different one for development machines than from
+# production ... make sure you have the correct version named service_mesh_map.yaml
+# for your current working/production environment.
 #
-# The internal programming api for this is the SelextConnX.* methods stored in 
-# the selext_conn_x/selext_conn_x_http.rb file ... typical rest verbs are used ...
+# The internal programming api for this is the MeshServices.* methods stored in 
+# the mesh_services/mesh_services_http.rb file ... typical rest verbs are used ...
 #
 # Connections can be closed/reloaded/reopened if need be ... we're using 
 # the concurrent ruby library to handle multi-threading friendly data structures.
@@ -34,14 +37,7 @@ extend self
 
   attr_accessor     :connections        # hash of connections to synchronous (http) services
 
-# selext_conn_x sql query api calls to SUT
-
-  attr_accessor     :service_databases
-  attr_accessor     :database_connections
-
-  attr_accessor     :sutdb
-  attr_accessor     :current_database_tag
-  attr_accessor     :sql_logger
+  attr_accessor     :mesh_api_token     # token from credentials
 
 # ------------------------------------------------------------------------------
 
@@ -50,33 +46,25 @@ def initialize!
   return if @initmode == 'initialized'
 
 # ------------------------------------------------------------------------------
+# load the mesh_api_token from encrypted credentials file
+
+  @mesh_api_token = ::AppUtils::Credentials.fetch_credentials(:mesh_api_token)
+
+# ------------------------------------------------------------------------------
 # load the service map;  note that the actual connections are lazy-loaded on
 # first call ...
 
-  SelextConnX.load_selextconnx_service_map!
+  MeshServices.load_mesh_services_service_map!
 
 # ------------------------------------------------------------------------------
-# require the synch http service
+# require the synchronous http service
 
-  require_relative 'selext_conn_x_http.rb'
+  require_relative 'mesh_services_http.rb'
  
-# ------------------------------------------------------------------------------
-# require the sql db service to the remote SUT -- 
-# NOTE: only requires file, does NOT connect now - it is a lazy-load so only
-# need to connect when need it (generally this is NOT needed in most of our system)
-#
-  require_relative 'selext_conn_x_sql.rb'
-  require_relative 'selext_conn_x_sql_logger.rb'
-
-  @current_database_tag = nil
-  
-  @sql_logger = SelextConnX::SqlLogger.new
-
-  SelextConnX.load_selextconnx_database_services_map!
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 # all done ! - flip initmode - won't be rerun if accidentally called
-# SelextConnX.initialize! more than once.
+# MeshServices.initialize! more than once.
 
   @initmode = 'initialized'
 
@@ -85,10 +73,10 @@ end  # initialize!
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-# allow selextconnx to reload its service map and refresh connections without
+# allow meshservices to reload its service map and refresh connections without
 # having to bounce app
 
-def self.reset_selextconnx!
+def self.reset_meshservices!
 
   # close any connections
 
@@ -106,9 +94,12 @@ def self.reset_selextconnx!
 
   @connections = ::Concurrent::Map.new
 
-  SelextConnX.load_selextconnx_service_map!
+  MeshServices.load_mesh_services_service_map!
 
 end
+
+
+# ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
@@ -119,17 +110,22 @@ private
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 # load service map from config file ... this is an interface routine which
-# bridges config variables into selextconnx
+# bridges config variables into MeshServices
 
-def self.load_selextconnx_service_map!
+def self.load_mesh_services_service_map!
 
   # in future we might want to support different map files based on what we're 
   # running tests against ... use a var here and load right after ... 
 
-  map_file = Selext.customizers('service_mesh_map.yaml')
+  if Selext.deployment_type == 'local'
+    map_file = Selext.customizers('service_mesh_map.yaml')
+  else
+    map_file = Selext.customizers('service_mesh_map_prod.yaml')
+  end
+  
 
   unless File.exists?(map_file)
-    raise StandardError, "Missing SelextConnX mapping file :  #{map_file}"
+    raise StandardError, "Missing MeshServices mapping file :  #{map_file}"
   end
 
   # now load it from the config_file
@@ -139,9 +135,9 @@ def self.load_selextconnx_service_map!
 
   hash = YAML.load_file(map_file)
 
-  if hash.has_key?('services')
+  if hash.has_key?('mesh_services')
 
-    hash['services'].each_pair do |k,element|
+    hash['mesh_services'].each_pair do |k,element|
       @services.put_if_absent(k.to_sym,element)
       @connections.put_if_absent(k.to_sym, nil)
     end
@@ -150,44 +146,11 @@ def self.load_selextconnx_service_map!
 
 end
 
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
-# load database_services map from config file ... this is an interface routine which
-# bridges config variables into selextconnx
-
-def self.load_selextconnx_database_services_map!
-
-  # in future we might want to support different map files based on what we're 
-  # running tests against ... use a var here and load right after ... 
-
-  map_file = Selext.customizers('service_databases_map.yaml')
-
-  unless File.exists?(map_file)
-    raise StandardError, "Missing SelextConnX mapping file :  #{map_file}"
-  end
-
-  # now load it from the config_file
-
-  @service_databases     = ::Concurrent::Map.new
-  @database_connections  = ::Concurrent::Map.new
-
-  hash = YAML.load_file(map_file)
-
-  if hash.has_key?('service_databases')
-
-    hash['service_databases'].each_pair do |k,element|
-      @service_databases.put_if_absent(k.to_sym,element)
-      @database_connections.put_if_absent(k.to_sym, nil)
-    end
-
-  end
-
-end
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 
-class SelextConnXError
+class MeshServicesError
   attr_accessor :body
   attr_accessor :status
 end  

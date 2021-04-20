@@ -6,6 +6,18 @@ module Selext
     File.expand_path(File.join(Selext.home, *args))
   end
 
+  def Selext.api_contracts(*args)
+    File.expand_path(File.join(Selext.home, 'app', 'lib', 'apis', 'contracts', *args))
+  end
+
+  def Selext.api_adapters(*args)
+    File.expand_path(File.join(Selext.home, 'app', 'lib', 'apis', 'adapters', *args))
+  end
+
+  def Selext.api_handlers(*args)
+    File.expand_path(File.join(Selext.home, 'app', 'lib', 'apis', 'handlers', *args))
+  end
+
   def Selext.approot(*args)     # {project_directory}/app
     File.expand_path(File.join(Selext.home, 'app', *args))
   end
